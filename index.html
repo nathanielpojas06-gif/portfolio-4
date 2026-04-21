@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Creative Portfolio | Interactive Experience</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #ffb347;
+      --secondary: #b57bff;
+      --accent: #ff7a18;
+      --text: #ffffff;
+      --glass: rgba(255, 255, 255, 0.05);
+      --glass-border: rgba(255, 255, 255, 0.15);
+    }
+
+    * {
+      margin: 0; padding: 0; box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background: #1a0a0a; /* Dark base for the particle canvas */
+      color: var(--text);
+      overflow-x: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      padding: 20px;
+    }
+
+    /* Cinematic Background Canvas */
+    #bg-canvas {
+      position: fixed;
+      top: 0; left: 0;
+      z-index: -1;
+      background: linear-gradient(135deg, #2c0e0e 0%, #000000 100%);
+    }
+
+    .main-container {
+      background: rgba(15, 15, 15, 0.7);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      padding: 40px;
+      border-radius: 30px;
+      width: 100%;
+      max-width: 900px;
+      border: 1px solid var(--glass-border);
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+      text-align: center;
+      opacity: 0; /* Handled by JS animation */
+      transform: translateY(30px);
+    }
+
+    h1 {
+      font-size: 3rem;
+      margin-bottom: 10px;
+      background: linear-gradient(to right, #fff, var(--primary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -1px;
+    }
+
+    .profile-box {
+      margin-bottom: 20px;
+    }
+
+    .profile-box img {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      border: 4px solid var(--secondary);
+      box-shadow: 0 0 30px rgba(181, 123, 255, 0.3);
+      object-fit: cover;
+      transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .profile-box img:hover {
+      transform: scale(1.1) rotate(3deg);
+    }
+
+    nav {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 50px;
+      padding: 8px;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+      border: 1px solid var(--glass-border);
+    }
+
+    nav a {
+      color: #bbb;
+      text-decoration: none;
+      font-weight: 500;
+      padding: 10px 20px;
+      border-radius: 40px;
+      transition: 0.3s all ease;
+      font-size: 0.9rem;
+    }
+
+    nav a:hover, nav a.active {
+      background: var(--primary);
+      color: #000;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(255, 179, 71, 0.4);
+    }
+
+    section {
+      display: none;
+      animation: slideUp 0.6s forwards cubic-bezier(0.23, 1, 0.32, 1);
+    }
+
+    section.active { display: block; }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .card {
+      background: var(--glass);
+      border-radius: 20px;
+      padding: 30px;
+      border: 1px solid var(--glass-border);
+    }
+
+    /* Portfolio Media Grid */
+    .media-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    .media-item {
+      position: relative;
+      border-radius: 15px;
+      overflow: hidden;
+      cursor: pointer;
+      border: 1px solid var(--glass-border);
+    }
+
+    .media-item img, .media-item video {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      transition: 0.5s;
+    }
+
+    .media-item:hover img { transform: scale(1.1); }
+
+    .media-item p {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      background: rgba(0,0,0,0.7);
+      padding: 8px;
+      font-size: 0.8rem;
+    }
+
+    /* Buttons */
+    .btn-link {
+      display: block;
+      margin: 10px auto;
+      padding: 15px;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid var(--glass-border);
+      color: white;
+      text-decoration: none;
+      border-radius: 12px;
+      font-weight: 600;
+      transition: 0.3s;
+      max-width: 400px;
+    }
+
+    .btn-link:hover {
+      background: var(--primary);
+      color: black;
+      transform: translateX(10px);
+    }
+
+    /* Chatbot Styles */
+    #chat-trigger {
+      position: fixed; bottom: 30px; right: 30px;
+      width: 60px; height: 60px; background: var(--primary);
+      border-radius: 50%; display: flex; justify-content: center;
+      align-items: center; font-size: 1.5rem; cursor: pointer;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.3); z-index: 1000;
+    }
+
+    #chat-window {
+      display: none; position: fixed; bottom: 100px; right: 30px;
+      width: 320px; height: 400px; background: #111;
+      border: 1px solid var(--primary); border-radius: 20px;
+      flex-direction: column; overflow: hidden; z-index: 1000;
+    }
+
+    /* Form Styles */
+    form input, form textarea {
+      width: 100%; padding: 12px; margin-bottom: 10px;
+      background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border);
+      border-radius: 10px; color: white; outline: none;
+    }
+
+    form button {
+      width: 100%; padding: 12px; background: var(--primary);
+      border: none; border-radius: 10px; font-weight: bold; cursor: pointer;
+    }
+
+    /* Lightbox */
+    .lightbox {
+      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.9); z-index: 2000; justify-content: center; align-items: center;
+    }
+    .lightbox img, .lightbox video { max-width: 90%; max-height: 80%; border-radius: 10px; }
+  </style>
+</head>
+<body>
+
+  <canvas id="bg-canvas"></canvas>
+
+  <div class="main-container" id="main-ui">
+    <div class="profile-box">
+      <img src="beg.jpeg" alt="Avatar">
+    </div>
+    <h1>portfolio</h1>
+    <p style="color: #888; margin-bottom: 20px;">photoshop • figma • canva</p>
+
+    <nav id="navbar">
+      <a href="#" onclick="showSection('about', this)" class="active">About</a>
+      <a href="#" onclick="showSection('photos', this)">Photos</a>
+      <a href="#" onclick="showSection('videos', this)">Videos</a>
+      <a href="#" onclick="showSection('outputs', this)">Outputs</a>
+      <a href="#" onclick="showSection('contact', this)">Contact</a>
+    </nav>
+
+    <section id="about" class="active">
+      <div class="card">
+        <h2>Professional Profile</h2>
+        <p style="line-height: 1.8; margin-top: 15px;">
+          I specialize in transforming complex ideas into elegant digital solutions. 
+          With expertise in <strong>Figma</strong> and <strong>Canva</strong>, I build 
+          visual identities that resonate. My journey is defined by continuous 
+          learning and a passion for modern aesthetics.
+        </p>
+      </div>
+    </section>
+
+    <section id="photos">
+      <div class="card">
+        <h2>Visual Works</h2>
+        <div class="media-grid">
+          <div class="media-item"><img src="x.jpg" onclick="openLightbox(this)"><p>Schematic</p></div>
+          <div class="media-item"><img src="pe.jpeg" onclick="openLightbox(this)"><p>certificate</p></div>
+          <div class="media-item"><img src="pa.jpg" onclick="openLightbox(this)"><p>certificate</p></div>
+          <div class="media-item"><img src="pv.jpg" onclick="openLightbox(this)"><p>resume</p></div>
+         <div class="media-item"><img src="po.jpeg" onclick="openLightbox(this)"><p>banner</p></div>
+         <div class="media-item"><img src="niel.jpg" onclick="openLightbox(this)"><p>cheeseboard</p></div>
+          <div class="media-item"><img src="nath.jpg" onclick="openLightbox(this)"><p>photoshop</p></div>
+          <div class="media-item"><img src="p.jpeg" onclick="openLightbox(this)"><p>photoshop t-shirt</p></div>
+         
+        </div>
+      </div>
+    </section>
+
+    <section id="videos">
+      <div class="card">
+        <h2>Motion Graphics</h2>
+        <div class="media-grid">
+          <div class="media-item"><video src="cge.mp4" muted onclick="openLightbox(this)"></video><p>Nature Reel</p></div>
+          <div class="media-item"><video src="ta.mp4" muted onclick="openLightbox(this)"></video><p>Music Video</p></div>
+         <div class="media-item"><video src="sc.mp4" muted onclick="openLightbox(this)"></video><p>schematic</p></div>
+        
+      </div>
+    </section>
+
+    <section id="outputs">
+      <div class="card">
+        <h2>Project Portals</h2>
+        <a href="https://www.canva.com/design/DAGzVPiY78U/-5-Imb47YOD7DXZK-Od-FA/edit" class="btn-link">Canva portfolio ↗</a>
+        <a href="https://www.figma.com/design/GITkF3BofyhNgdTNT36cUN/Untitled?node-id=41-4&t=QtCwLntPO54hVdtV-1" class="btn-link">Figma portfolio ↗</a>
+        <a href="https://www.figma.com/proto/Juw8KXauaARG4XvPbGcCPH/Untitled?node-id=16-17&p=f&t=lb8equ7z6kltrbuQ-1&scaling=scale-down&content-scaling=fixed&page-id=0%3A1&starting-point-node-id=7%3A3&show-proto-sidebar=1" class="btn-link">Figma E-commerce  ↗</a>
+      </div>
+    </section>
+
+    <section id="contact">
+      <div class="card">
+        <h2>Let's Collaborate</h2>
+        <form onsubmit="event.preventDefault(); alert('Message Received!');">
+          <input type="email" placeholder="Your Email Address" required>
+          <textarea rows="4" placeholder="Briefly describe your project..." required></textarea>
+          <button type="submit">Send Message</button>
+        </form>
+      </div>
+    </section>
+  </div>
+
+  <div id="chat-trigger" onclick="toggleChat()">💬</div>
+  <div id="chat-window" id="chat-win">
+    <div style="padding:15px; background:var(--primary); color:black; font-weight:bold;">Assistant</div>
+    <div id="chat-content" style="flex:1; padding:15px; overflow-y:auto; font-size:0.85rem; display:flex; flex-direction:column; gap:10px;">
+      <div style="background:rgba(255,255,255,0.1); padding:8px; border-radius:8px;">Hi! Ask me about my skills or projects.</div>
+    </div>
+    <div style="padding:10px; display:flex; gap:5px;">
+      <input type="text" id="chat-input" placeholder="Type..." style="margin:0;">
+      <button onclick="sendChat()" style="width:60px;">Go</button>
+    </div>
+  </div>
+
+  <div class="lightbox" id="lightbox" onclick="this.style.display='none'">
+    <div id="lb-container"></div>
+  </div>
+
+  <script>
+    // 1. Particle Background Logic
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+
+    function initCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    class Particle {
+      constructor() {
+        this.reset();
+      }
+      reset() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.size = Math.random() * 2;
+        this.speedX = Math.random() * 0.5 - 0.25;
+        this.speedY = Math.random() * 0.5 - 0.25;
+        this.life = Math.random() * 0.5 + 0.5;
+      }
+      update() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+        if(this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) this.reset();
+      }
+      draw() {
+        ctx.fillStyle = `rgba(255, 179, 71, ${this.life})`;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    for(let i=0; i<80; i++) particles.push(new Particle());
+
+    function animate() {
+      ctx.clearRect(0,0,canvas.width, canvas.height);
+      particles.forEach(p => { p.update(); p.draw(); });
+      requestAnimationFrame(animate);
+    }
+
+    window.addEventListener('resize', initCanvas);
+    initCanvas();
+    animate();
+
+    // 2. Entrance Animation
+    window.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('main-ui').animate([
+        { opacity: 0, transform: 'translateY(30px)' },
+        { opacity: 1, transform: 'translateY(0)' }
+      ], { duration: 1000, easing: 'ease-out', fill: 'forwards' });
+    });
+
+    // 3. Section Switching
+    function showSection(id, el) {
+      document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+      
+      document.getElementById(id).classList.add('active');
+      el.classList.add('active');
+    }
+
+    // 4. Lightbox 
+    function openLightbox(el) {
+      const lb = document.getElementById('lightbox');
+      const container = document.getElementById('lb-container');
+      container.innerHTML = '';
+      const clone = el.cloneNode(true);
+      if(clone.tagName === 'VIDEO') { clone.controls = true; clone.play(); }
+      container.appendChild(clone);
+      lb.style.display = 'flex';
+    }
+
+    // 5. Chatbot
+    function toggleChat() {
+      const win = document.getElementById('chat-window');
+      win.style.display = win.style.display === 'flex' ? 'none' : 'flex';
+    }
+
+    function sendChat() {
+      const input = document.getElementById('chat-input');
+      const content = document.getElementById('chat-content');
+      if(!input.value) return;
+
+      const userDiv = document.createElement('div');
+      userDiv.style = "align-self:flex-end; background:var(--primary); color:black; padding:8px; border-radius:8px;";
+      userDiv.innerText = input.value;
+      content.appendChild(userDiv);
+
+      setTimeout(() => {
+        const botDiv = document.createElement('div');
+        botDiv.style = "align-self:flex-start; background:rgba(255,255,255,0.1); padding:8px; border-radius:8px;";
+        botDiv.innerText = "I'm a demo bot, but the developer is great with Figma and Canva!";
+        content.appendChild(botDiv);
+        content.scrollTop = content.scrollHeight;
+      }, 600);
+
+      input.value = '';
+    }
+  </script>
+</body>
+</html>
